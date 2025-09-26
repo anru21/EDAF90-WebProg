@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <title>EDAF90</title>
+  <link rel="stylesheet" href="lab0.css" />
+</head>
+<body>
+    <h1>Order a burger</h1>
+    
+    <form action="order-burger.html" method="POST">
+        <div>
+            <label for="name">Name</label>
+            <input type="text" name="name" id="name">
+        </div>
+     
+        <div>
+            <label for="burger-size">Select the burger size:</label>
+    
+            <select id="burger-size" name="size-select">
+                <option value="90g">90 gram</option>
+                <option value="120g">120 gram</option>
+                <option value="180g">180 gram</option>
+            </select>
+        </div>
+      
+        <div>
+            <fieldset id="extras">
+                <legend>Extras</legend>
+    
+                <label><input type="checkbox" name="vegetable" value="onion">Onion</label>
+                <label><input type="checkbox" name="vegetable" value="tomato">Tomato</label>
+                <label><input type="checkbox" name="vegetable" value="cucumber">Cucumber</label>
+            </fieldset>
+        </div>
+
+        <input type="submit" value="Feed me!">
+
+    </form>
+
+</html>
