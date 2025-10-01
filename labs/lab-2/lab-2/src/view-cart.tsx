@@ -29,7 +29,6 @@ import {
 } from "./components/ui/table";
 import type { Salad } from "./salad";
 import { CircleCheckIcon } from "lucide-react";
-import { useState } from "react";
 
 type PropsType = { cart: Salad[] };
 function ViewCart({ cart }: PropsType) {
@@ -41,15 +40,15 @@ function ViewCart({ cart }: PropsType) {
           <Table>
             {tableHead}
             <TableBody>
-              {cart.map((salad, index) => (
+              {cart.map((salad) => (
                 <TableRow key={salad.uuid}>
                   <TableCell className="font-normal">
-                    {Object.keys(cart[index].ingredients).join(",")}
+                    {Object.keys(salad.ingredients).join(",")}
                   </TableCell>
 
                   <TableCell>
                     <div>
-                      {cart[index].info().vegan && (
+                      {salad.info().vegan && (
                         <CircleCheckIcon className="text-primary m-auto" />
                       )}
                     </div>
@@ -57,7 +56,7 @@ function ViewCart({ cart }: PropsType) {
 
                   <TableCell>
                     <div>
-                      {cart[index].info().lactose && (
+                      {salad.info().lactose && (
                         <CircleCheckIcon className="text-primary m-auto"></CircleCheckIcon>
                       )}
                     </div>
@@ -65,14 +64,14 @@ function ViewCart({ cart }: PropsType) {
 
                   <TableCell>
                     <div>
-                      {cart[index].info().gluten && (
+                      {salad.info().gluten && (
                         <CircleCheckIcon className="text-primary m-auto"></CircleCheckIcon>
                       )}
                     </div>
                   </TableCell>
 
                   <TableCell className="font-normal text-right tabular-nums">
-                    {cart[index].price()} kr
+                    {salad.price()} kr
                   </TableCell>
                 </TableRow>
               ))}

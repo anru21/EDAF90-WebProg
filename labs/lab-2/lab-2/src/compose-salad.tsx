@@ -5,19 +5,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./components/ui/select";
-import type { IngredientType, Inventory, PartialInventory } from "./inventory";
-import { Button } from "./components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  inventory,
+  type IngredientType,
+  type Inventory,
+  type PartialInventory,
+} from "./inventory";
+import { Button } from "./components/ui/button";
 import { Label } from "./components/ui/label";
 import React, { useState } from "react";
 import { Checkbox } from "./components/ui/checkbox";
@@ -36,7 +30,7 @@ function selectType(type: IngredientType, inventory: Inventory): string[] {
   return (
     Object.entries(inventory)
       // keep only the correct type
-      .filter(([_, ingredientInfo]) => ingredientInfo.type === type)
+      .filter(([, ingredientInfo]) => ingredientInfo.type === type)
       // sort alphabetically by ingredient name (Swedish locale, case-insensitive)
       .sort(([a], [b]) => a.localeCompare(b, "sv", { sensitivity: "case" }))
       // build the <option> string
@@ -86,31 +80,12 @@ function ComposeSalad({ inventory, addSaladFunction }: PropType) {
     saladToAdd = saladToAdd.add(dressing, inventory[dressing]);
 
     addSaladFunction(saladToAdd);
-  }
 
-  const addSaladButton = (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <div className="flex items-center justify-end mr-">
-          <Button type="submit" className="mr-4 cursor-pointer">
-            Lägg till i varukorgen
-          </Button>
-        </div>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Under utveckling</AlertDialogTitle>
-          <AlertDialogDescription>
-            Denna funktion implementeras under labb 4.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
+    setDressing("");
+    setExtra({});
+    setFoundation("");
+    setProtein("");
+  }
 
   return (
     <Card className="w-full p-3">
@@ -133,6 +108,7 @@ function ComposeSalad({ inventory, addSaladFunction }: PropType) {
 
           <SelectExtras
             label="Välj minst två ingredienser"
+            value={extra}
             options={extraNames}
             inventory={inventory}
             changeExtra={handleChangeExtra}
@@ -145,7 +121,11 @@ function ComposeSalad({ inventory, addSaladFunction }: PropType) {
             onValueChange={setDressing}
           ></SelectIngredient>
 
-          {addSaladButton}
+          <div className="flex items-center justify-end mr-">
+            <Button type="submit" className="mr-4 cursor-pointer">
+              Lägg till i varukorgen
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
@@ -165,26 +145,27 @@ function SelectIngredient({
   options,
 }: SelectIngredientType) {
   return (
-    <Label className="grid grid-cols-1 gap-2 mb-4">
+    <div className="grid grid-cols-1 gap-2 mb-4">
       <span className="text-base font-semibold -mb-1">{label}</span>
       <Select name={label} value={value} onValueChange={onValueChange}>
         <SelectTrigger className="w-sm cursor-pointer">
           <SelectValue placeholder="gör ett val" />
         </SelectTrigger>
         <SelectContent>
-          {options.map((foundation) => (
-            <SelectItem value={foundation} key={foundation}>
-              {foundation}
+          {options.map((ingredient) => (
+            <SelectItem value={ingredient} key={ingredient}>
+              {ingredient + ", " + inventory[ingredient].price + " kr"}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-    </Label>
+    </div>
   );
 }
 
 type SelectExtrasProps = {
   label: string;
+  value: PartialInventory;
   options: string[];
   inventory: Inventory;
   changeExtra: (name: string, checked: CheckedState) => void;
@@ -192,55 +173,32 @@ type SelectExtrasProps = {
 
 function SelectExtras({
   label,
+  value,
   options,
   inventory,
   changeExtra,
 }: SelectExtrasProps) {
   return (
-    <div className="grid grid-cols-4 grid-rows-7 gap-x-0 mb-4">
+    <div className="grid grid-cols-4 gap-x-0 mb-4">
       <span className="col-span-4 text-base font-semibold -mb-1">{label}</span>
       {options.map((ingredient) => (
-        <ExtraCheckboxes
+        <Label
           key={ingredient}
-          ingredient={ingredient}
-          inventory={inventory}
-          changeExtra={changeExtra}
-        ></ExtraCheckboxes>
+          htmlFor={ingredient}
+          className="col-span-1 flex items-center space-x-1 cursor-pointer"
+        >
+          <Checkbox
+            id={ingredient}
+            checked={!!value[ingredient]}
+            onCheckedChange={(newChecked: boolean) => {
+              changeExtra(ingredient, newChecked);
+            }}
+            className="cursor-pointer"
+          ></Checkbox>
+          {ingredient + ", " + inventory[ingredient].price + " kr"}
+        </Label>
       ))}
     </div>
-  );
-}
-
-type ExtraCheckboxProps = {
-  ingredient: string;
-  inventory: Inventory;
-  changeExtra: (name: string, checked: CheckedState) => void;
-};
-
-function ExtraCheckboxes({
-  ingredient,
-  inventory,
-  changeExtra,
-}: ExtraCheckboxProps) {
-  const [checked, setChecked] = useState(false);
-
-  const id = `extra-${ingredient}`;
-  return (
-    <Label
-      htmlFor={id}
-      className="col-span-1 flex items-center space-x-1 cursor-pointer"
-    >
-      <Checkbox
-        id={id}
-        checked={checked}
-        onCheckedChange={(newChecked: boolean) => {
-          setChecked(newChecked);
-          changeExtra(ingredient, newChecked);
-        }}
-        className="cursor-pointer"
-      ></Checkbox>
-      {ingredient + ", " + inventory[ingredient].price + " kr"}
-    </Label>
   );
 }
 
