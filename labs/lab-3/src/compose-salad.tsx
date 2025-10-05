@@ -24,6 +24,7 @@ import {
   CardTitle,
 } from "./components/ui/card";
 import { Salad } from "./salad";
+import { useOutletContext } from "react-router";
 
 function selectType(type: IngredientType, inventory: Inventory): string[] {
   //return ["copy ", "the ", "structure ", "from ", "lab 1 ", "makeOptions "];
@@ -42,12 +43,14 @@ function selectType(type: IngredientType, inventory: Inventory): string[] {
   );
 }
 
-type PropType = {
+type PropsType = {
   inventory: Inventory;
-  addSaladFunction: (saladToAdd: Salad) => void;
+  addSalad: (saladToAdd: Salad) => void;
 };
 
-function ComposeSalad({ inventory, addSaladFunction }: PropType) {
+function ComposeSalad() {
+  const { inventory, addSalad: addSaladFunction } = useOutletContext<PropsType>();
+
   const [foundation, setFoundation] = useState("");
   const [protein, setProtein] = useState("");
   const [extra, setExtra] = useState<PartialInventory>({});

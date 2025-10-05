@@ -29,9 +29,12 @@ import {
 } from "./components/ui/table";
 import type { Salad } from "./salad";
 import { CircleCheckIcon } from "lucide-react";
+import { useOutletContext } from "react-router";
 
 type PropsType = { cart: Salad[] };
-function ViewCart({ cart }: PropsType) {
+function ViewCart() {
+  const { cart } = useOutletContext<PropsType>();
+
   return (
     <>
       <Card className="w-full p-3">

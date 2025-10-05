@@ -1,7 +1,7 @@
 import "./App.css";
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 
 import {
   NavigationMenu,
@@ -13,8 +13,6 @@ import {
 import { inventory } from "./inventory";
 import { Salad } from "./salad";
 
-import ViewCart from "./view-cart";
-import ComposeSalad from "./compose-salad";
 import { executionAsyncResource } from "async_hooks";
 
 
@@ -46,29 +44,55 @@ const initialCart = [
   
   function App() {
     const [cart, setCart] = useState<Salad[]>(initialCart);
-    function AddSalad(saladToAdd: Salad) {
+    
+    function addSalad(saladToAdd: Salad) {
       setCart([...cart, saladToAdd]);
     }
     return (
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem>
+      <>
+        <div className="flex flex-col items-center justify-center text-gray-800 p-6">
+          <h1 className="text-6xl font-extrabold text-green-900 mb-8">
+            Salladsbaren
+          </h1>
+
+        <NavigationMenu className="mb-10">
+          <NavigationMenuList>
+            <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link 
+                    to='/' 
+                    className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
+                  >
+                    Home
+                  </Link>
+                </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link 
+                    to='/compose-salad'
+                    className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
+                  >
+                    Gör din sallad
+                  </Link>
+                </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link to='/'>Home</Link>
+                <Link
+                  to='/view-cart' 
+                  className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
+                >
+                  Varukorg
+                </Link>
               </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link to='/compose-salad'>Compose your salad</Link>
-              </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuLink asChild>
-              <Link to='/view-cart'>View your cart</Link>
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+
+        <Outlet context= { { inventory, cart, addSalad}} />
+        </div>
+      </>
   );
 }
 
