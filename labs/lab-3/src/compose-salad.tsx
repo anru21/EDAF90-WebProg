@@ -24,7 +24,9 @@ import {
   CardTitle,
 } from "./components/ui/card";
 import { Salad } from "./salad";
-import { useOutletContext } from "react-router";
+import { Navigate, useNavigate, useOutletContext } from "react-router";
+import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 function selectType(type: IngredientType, inventory: Inventory): string[] {
   //return ["copy ", "the ", "structure ", "from ", "lab 1 ", "makeOptions "];
@@ -60,6 +62,10 @@ function ComposeSalad() {
   const extraNames = selectType("extra", inventory);
   const dressingNames = selectType("dressing", inventory);
 
+  const navigate = useNavigate();
+
+  const [erroneousFields, setErroneousFields] = useState([""]);
+
   function handleChangeExtra(name: string, checked: CheckedState) {
     if (checked) {
       setExtra({ ...extra, [name]: inventory[name] });
@@ -71,6 +77,7 @@ function ComposeSalad() {
 
   function handleSaladSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     const extraList: string[] = Object.keys(extra);
     let saladToAdd: Salad = new Salad()
       .add(foundation, inventory[foundation])
@@ -81,20 +88,42 @@ function ComposeSalad() {
     }
 
     saladToAdd = saladToAdd.add(dressing, inventory[dressing]);
+    
+    /*
 
+    let newErroneousFields: string[];
+
+    if (foundation === "") {
+      newErroneousFields = [...erroneousFields, "foundation"];
+      setErroneousFields(newErroneousFields);
+    }
+
+    if (protein === "") {
+      newErroneousFields = [...erroneousFields, "protein"];
+      setErroneousFields(newErroneousFields);
+    }
+
+    if (dressing === "") {
+      newErroneousFields = [...erroneousFields, "dressing"];
+      setErroneousFields(newErroneousFields);
+    }
+
+    */
     addSaladFunction(saladToAdd);
 
     setDressing("");
     setExtra({});
     setFoundation("");
     setProtein("");
+
+    navigate("/view-cart/salad/" + saladToAdd.uuid);
   }
 
   return (
     <Card className="w-full p-3">
       {cardHead}
       <CardContent>
-        <form onSubmit={handleSaladSubmit}>
+        <form onSubmit={handleSaladSubmit} className="">
           <SelectIngredient
             label="Välj bas"
             value={foundation}
@@ -148,11 +177,17 @@ function SelectIngredient({
   options,
 }: SelectIngredientType) {
   return (
-    <div className="grid grid-cols-1 gap-2 mb-4">
+    <div className="gap-2 mb-4">
       <span className="text-base font-semibold -mb-1">{label}</span>
-      <Select name={label} value={value} onValueChange={onValueChange}>
-        <SelectTrigger className="w-sm cursor-pointer">
-          <SelectValue placeholder="gör ett val" />
+      <span aria-hidden="true">*</span>
+      <Select 
+        name={label} 
+        value={value} 
+        onValueChange={onValueChange}
+        required
+      >
+        <SelectTrigger aria-invalid={true} className="w-sm cursor-pointer mb-1">
+          <SelectValue placeholder="gör ett val"/>
         </SelectTrigger>
         <SelectContent>
           {options.map((ingredient) => (
@@ -162,6 +197,10 @@ function SelectIngredient({
           ))}
         </SelectContent>
       </Select>
+      <Alert variant="destructive" className="hidden" >
+        <AlertCircleIcon/>
+        <AlertTitle className="pt-0.5">Gör ett val.</AlertTitle>
+      </Alert>
     </div>
   );
 }
@@ -182,13 +221,14 @@ function SelectExtras({
   changeExtra,
 }: SelectExtrasProps) {
   return (
-    <div className="grid grid-cols-4 gap-x-0 mb-4">
+    <>
+      <div className="grid grid-cols-4 gap-x-0 mb-4">
       <span className="col-span-4 text-base font-semibold -mb-1">{label}</span>
       {options.map((ingredient) => (
         <Label
-          key={ingredient}
-          htmlFor={ingredient}
-          className="col-span-1 flex items-center space-x-1 cursor-pointer"
+        key={ingredient}
+        htmlFor={ingredient}
+        className="col-span-1 flex items-center space-x-1 cursor-pointer"
         >
           <Checkbox
             id={ingredient}
@@ -197,11 +237,16 @@ function SelectExtras({
               changeExtra(ingredient, newChecked);
             }}
             className="cursor-pointer"
-          ></Checkbox>
+            ></Checkbox>
           {ingredient + ", " + inventory[ingredient].price + " kr"}
         </Label>
       ))}
-    </div>
+      </div>
+      <Alert variant="destructive" className="hidden" >
+        <AlertCircleIcon/>
+        <AlertTitle className="pt-0.5">För få ingredienser, välj minst två.</AlertTitle>
+      </Alert>
+    </>
   );
 }
 

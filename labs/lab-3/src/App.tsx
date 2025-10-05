@@ -46,7 +46,7 @@ const initialCart = [
     const [cart, setCart] = useState<Salad[]>(initialCart);
     
     function addSalad(saladToAdd: Salad) {
-      setCart([...cart, saladToAdd]);
+      setCart([saladToAdd, ...cart]);
     }
     return (
       <>

@@ -30,13 +30,20 @@ import {
 import type { Salad } from "./salad";
 import { CircleCheckIcon } from "lucide-react";
 import { useOutletContext } from "react-router";
+import { useParams } from "react-router-dom";
+import { Badge } from "@/components/ui/badge"
+
+
+
 
 type PropsType = { cart: Salad[] };
 function ViewCart() {
   const { cart } = useOutletContext<PropsType>();
+  const params = useParams();
 
   return (
     <>
+      <h1>salad: {params.saladId}</h1>
       <Card className="w-full p-3">
         {cardHead}
         <CardContent>
@@ -47,6 +54,7 @@ function ViewCart() {
                 <TableRow key={salad.uuid}>
                   <TableCell className="font-normal">
                     {Object.keys(salad.ingredients).join(",")}
+                    {salad.uuid === params.saladId && <Badge variant="outline" className="bg-green-500 text-white ml-2">Ny</Badge>}
                   </TableCell>
 
                   <TableCell>

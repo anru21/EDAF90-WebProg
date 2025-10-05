@@ -24,7 +24,11 @@ const router = createBrowserRouter([
         Component: ComposeSalad
       },
       {
-        path:'/view-cart',
+        path: '/view-cart',
+        Component: ViewCart
+      },
+      {
+        path:'/view-cart/salad/:saladId',
         Component: ViewCart
       },
       {
