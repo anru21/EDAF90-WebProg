@@ -77,40 +77,44 @@ function ComposeSalad() {
 
   function handleSaladSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    
     const extraList: string[] = Object.keys(extra);
 
-    const newErroneousFields = [
-      !foundation && "foundation",
-      !protein && "protein",
-      extraList.length < 2 && "extra",
-      !dressing && "dressing",
-    ].filter(Boolean) as string[];
+    let newErroneousFields: string[] = [];
+    if (!foundation) {
+      newErroneousFields = [...newErroneousFields, "foundation"];
+    }
+    if (!protein) {
+      newErroneousFields = [...newErroneousFields, "protein"];
+    }
+    if (extraList.length < 2) {
+      newErroneousFields = [...newErroneousFields, "extra"];
+    }
+    if (!dressing) {
+      newErroneousFields = [...newErroneousFields, "dressing"];
+    }
 
     setErroneousFields(newErroneousFields);
 
-    if (newErroneousFields.length > 0) return;  // Form validation failed. Return and do not create a new salad
-
-    // Build salad
-    let saladToAdd: Salad = new Salad()
+    if (newErroneousFields.length === 0) {
+      let saladToAdd: Salad = new Salad()
       .add(foundation, inventory[foundation])
       .add(protein, inventory[protein]) 
 
-    for (const item of extraList) {
-      saladToAdd = saladToAdd.add(item, inventory[item]);
+      for (const item of extraList) {
+        saladToAdd = saladToAdd.add(item, inventory[item]);
+      }
+
+      saladToAdd = saladToAdd.add(dressing, inventory[dressing]);
+    
+      addSaladFunction(saladToAdd);
+
+      setDressing("");
+      setExtra({});
+      setFoundation("");
+      setProtein("");
+
+      navigate("/view-cart/salad/" + saladToAdd.uuid);
     }
-
-    // Add salad, reset form and navigate to the view-cart page
-    saladToAdd = saladToAdd.add(dressing, inventory[dressing]);
-  
-    addSaladFunction(saladToAdd);
-
-    setDressing("");
-    setExtra({});
-    setFoundation("");
-    setProtein("");
-
-    navigate(`/view-cart/salad/${saladToAdd.uuid}`);
   }
 
   return (
