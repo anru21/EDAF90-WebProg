@@ -63,7 +63,7 @@ const initialCart = [
                     to='/' 
                     className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
                   >
-                    Home
+                    Hem
                   </Link>
                 </NavigationMenuLink>
             </NavigationMenuItem>

@@ -77,44 +77,47 @@ function ComposeSalad() {
 
   function handleSaladSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    
     const extraList: string[] = Object.keys(extra);
-
-    let newErroneousFields: string[] = [];
-    if (!foundation) {
-      newErroneousFields = [...newErroneousFields, "foundation"];
-    }
-    if (!protein) {
-      newErroneousFields = [...newErroneousFields, "protein"];
-    }
-    if (extraList.length < 2) {
-      newErroneousFields = [...newErroneousFields, "extra"];
-    }
-    if (!dressing) {
-      newErroneousFields = [...newErroneousFields, "dressing"];
-    }
+    const newErroneousFields = validateSalad(foundation, protein, extraList, dressing);
 
     setErroneousFields(newErroneousFields);
+    if (newErroneousFields.length > 0) return;  // Form validation failed. Return and do not create a new salad
 
-    if (newErroneousFields.length === 0) {
-      let saladToAdd: Salad = new Salad()
-      .add(foundation, inventory[foundation])
-      .add(protein, inventory[protein]) 
+    // Build salad
+    const saladToAdd: Salad = buildSalad(foundation, protein, extraList, dressing);
+    addSaladFunction(saladToAdd);
 
-      for (const item of extraList) {
-        saladToAdd = saladToAdd.add(item, inventory[item]);
-      }
+    resetForm();
+    navigate(`/view-cart/salad/${saladToAdd.uuid}`);
+  }
 
-      saladToAdd = saladToAdd.add(dressing, inventory[dressing]);
-    
-      addSaladFunction(saladToAdd);
+  function validateSalad(foundation: string, protein: string, extras: string[], dressing: string): string[] {
+    return [
+      !foundation && "foundation",
+      !protein && "protein",
+      extras.length < 2 && "extra",
+      !dressing && "dressing",
+    ].filter(Boolean) as string[];
+  }
 
-      setDressing("");
-      setExtra({});
-      setFoundation("");
-      setProtein("");
+  function buildSalad(foundation:string, protein: string, extras: string[], dressing: string): Salad {
+    let salad = new Salad()
+    .add(foundation, inventory[foundation])
+    .add(protein, inventory[protein]);
 
-      navigate("/view-cart/salad/" + saladToAdd.uuid);
-    }
+    extras.forEach(item => {
+      salad = salad.add(item, inventory[item]);
+    });
+
+    return salad.add(dressing, inventory[dressing]);
+  }
+  
+  function resetForm() {
+    setDressing("");
+    setExtra({});
+    setFoundation("");
+    setProtein("");
   }
 
   return (
@@ -186,6 +189,8 @@ function SelectIngredient({
   errorFields,
   ingredientType
 }: SelectIngredientType) {
+  const [hasClosed, setHasClosed] = useState(false);
+
   return (
     <div className="gap-2 mb-4">
       <label className="text-base font-semibold -mb-1">
@@ -196,8 +201,13 @@ function SelectIngredient({
         value={value} 
         onValueChange={onValueChange}
         required
+        onOpenChange={(isOpen) => {
+          if (!isOpen && !hasClosed) {
+            setHasClosed(true);
+          }
+        }}
       >
-        <SelectTrigger aria-invalid={errorFields.includes(ingredientType)} className="w-sm cursor-pointer mb-1">
+        <SelectTrigger aria-invalid={(errorFields.includes(ingredientType) && !value) || (hasClosed && !value)} className="w-sm cursor-pointer mb-1">
           <SelectValue placeholder="gör ett val"/>
         </SelectTrigger>
         <SelectContent>
@@ -208,7 +218,7 @@ function SelectIngredient({
           ))}
         </SelectContent>
       </Select>
-      {errorFields.includes(ingredientType) && 
+      {((errorFields.includes(ingredientType) && !value) || (hasClosed && !value))   && 
         <Alert variant="destructive">
           <AlertCircleIcon/>
           <AlertTitle>Gör ett val.</AlertTitle>
@@ -239,8 +249,8 @@ function SelectExtras({
 }: SelectExtrasProps) {
   return (
     <>
-      <div className="grid grid-cols-4 gap-x-0 mb-4">
-        <label className="col-span-4 text-base font-semibold -mb-1">{label}</label>
+      <div className="grid grid-cols-4 gap-x-0 gap-y-1 mb-4">
+        <label className="col-span-4 text-base font-semibold">{label}</label>
         {options.map((ingredient) => (
           <Label
           key={ingredient}
