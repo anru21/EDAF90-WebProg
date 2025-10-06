@@ -28,10 +28,11 @@ import {
   TableRow,
 } from "./components/ui/table";
 import type { Salad } from "./salad";
-import { CircleCheckIcon } from "lucide-react";
+import { CheckCircle2Icon, CircleCheckIcon } from "lucide-react";
 import { useOutletContext } from "react-router";
 import { useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 
 
 
@@ -43,10 +44,17 @@ function ViewCart() {
 
   return (
     <>
-      <h1>salad: {params.saladId}</h1>
       <Card className="w-full p-3">
         {cardHead}
         <CardContent>
+          {params.saladId && 
+          <Alert>
+            <CheckCircle2Icon />
+            <AlertTitle>En ny sallad har lagts till i varukorgen.</AlertTitle>
+            <AlertDescription>
+              Den kostar {cart[0].price()} kr
+            </AlertDescription>
+          </Alert>}
           <Table>
             {tableHead}
             <TableBody>
