@@ -24,8 +24,8 @@ import {
   CardTitle,
 } from "./components/ui/card";
 import { Salad } from "./salad";
-import { Navigate, useNavigate, useOutletContext } from "react-router";
-import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
+import { useNavigate, useOutletContext } from "react-router";
+import { Alert, AlertTitle } from "./components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 
 function selectType(type: IngredientType, inventory: Inventory): string[] {
@@ -51,7 +51,7 @@ type PropsType = {
 };
 
 function ComposeSalad() {
-  const { inventory, addSalad: addSaladFunction } = useOutletContext<PropsType>();
+  const { inventory, addSalad } = useOutletContext<PropsType>();
 
   const [foundation, setFoundation] = useState("");
   const [protein, setProtein] = useState("");
@@ -86,7 +86,7 @@ function ComposeSalad() {
 
     // Build salad
     const saladToAdd: Salad = buildSalad(foundation, protein, extraList, dressing);
-    addSaladFunction(saladToAdd);
+    addSalad(saladToAdd);
 
     resetForm();
     navigate(`/view-cart/salad/${saladToAdd.uuid}`);
@@ -269,7 +269,7 @@ function SelectExtras({
           </Label>
         ))}
       </div>
-      {errorFields.includes(ingredientType) && 
+      {(errorFields.includes(ingredientType) && Object.keys(value).length < 2) && 
           <Alert variant="destructive">
             <AlertCircleIcon/>
             <AlertTitle>För få ingredienser, välj minst två.</AlertTitle>

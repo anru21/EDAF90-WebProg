@@ -90,7 +90,7 @@ const initialCart = [
           </NavigationMenuList>
         </NavigationMenu>
 
-        <Outlet context= { { inventory, cart, addSalad}} />
+        <Outlet context= { { inventory, cart, addSalad }} />
         </div>
       </>
   );
