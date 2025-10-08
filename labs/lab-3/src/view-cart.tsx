@@ -40,21 +40,22 @@ import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 type PropsType = { cart: Salad[] };
 function ViewCart() {
   const { cart } = useOutletContext<PropsType>();
-  const params = useParams();
+  const  { saladId }  = useParams();
+  const newSalad = cart.find((salad) => salad.uuid === saladId);
 
   return (
     <>
       <Card className="w-full p-3">
         {cardHead}
         <CardContent>
-          {params.saladId && 
+          {(newSalad &&
           <Alert>
             <CheckCircle2Icon />
             <AlertTitle>En ny sallad har lagts till i varukorgen.</AlertTitle>
             <AlertDescription>
-              Den kostar {cart[0].price()} kr
+              Den kostar {newSalad?.price()} kr
             </AlertDescription>
-          </Alert>}
+          </Alert>)}
           <Table>
             {tableHead}
             <TableBody>
@@ -62,7 +63,7 @@ function ViewCart() {
                 <TableRow key={salad.uuid}>
                   <TableCell className="font-normal">
                     {Object.keys(salad.ingredients).join(",")}
-                    {salad.uuid === params.saladId && <Badge variant="outline" className="bg-green-500 text-white ml-2">Ny</Badge>}
+                    {salad.uuid === saladId && <Badge variant="outline" className="bg-green-500 text-white ml-2">Ny</Badge>}
                   </TableCell>
 
                   <TableCell>
