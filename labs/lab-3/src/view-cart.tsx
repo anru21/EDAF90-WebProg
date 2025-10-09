@@ -53,7 +53,7 @@ function ViewCart() {
             <CheckCircle2Icon />
             <AlertTitle>En ny sallad har lagts till i varukorgen.</AlertTitle>
             <AlertDescription>
-              Den kostar {newSalad?.price()} kr
+              Den kostar {newSalad.price()} kr
             </AlertDescription>
           </Alert>)}
           <Table>
