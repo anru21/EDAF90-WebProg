@@ -55,11 +55,17 @@ function App() {
   }
 
   function loadLocalStorage(): Salad[] {
+    let raw;
+    console.log(didInit);
     if (!didInit) {
       didInit = true;
-      window.localStorage.setItem("cart", JSON.stringify(initialCart));
+      raw = window.localStorage.getItem("cart");
+      if (!raw) {
+        window.localStorage.setItem("cart", JSON.stringify(initialCart));
+      }
+      raw = window.localStorage.getItem("cart");
     }
-    const raw = window.localStorage.getItem("cart");
+    console.log(raw);
     if (!raw) return [];
     return Salad.parse(raw);
   }
