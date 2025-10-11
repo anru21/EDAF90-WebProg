@@ -15,8 +15,6 @@ import { Salad } from "./salad";
 
 import { executionAsyncResource } from "async_hooks";
 
-
-
 const initialCart = [
   new Salad()
     .add("Sallad", inventory["Sallad"])
@@ -39,48 +37,66 @@ const initialCart = [
     .add("Avocado", inventory["Avocado"])
     .add("Lime", inventory["Lime"])
     .add("Örtvinägrett", inventory["Örtvinägrett"]),
-  ];
-  
-  
-  function App() {
-    const [cart, setCart] = useState<Salad[]>(initialCart);
-    
-    function addSalad(saladToAdd: Salad) {
-      setCart([saladToAdd, ...cart]);
+];
+
+let didInit = false;
+
+function App() {
+  const [cart, setCart] = useState<Salad[]>(loadLocalStorage);
+
+  function addSalad(saladToAdd: Salad) {
+    const updatedCart: Salad[] = [saladToAdd, ...cart];
+    setCart(updatedCart);
+    setLocalStorage(updatedCart);
+  }
+
+  function setLocalStorage(newCart: Salad[]) {
+    window.localStorage.setItem("cart", JSON.stringify(newCart));
+  }
+
+  function loadLocalStorage(): Salad[] {
+    if (!didInit) {
+      didInit = true;
+      window.localStorage.setItem("cart", JSON.stringify(initialCart));
     }
-    return (
-      <>
-        <div className="flex flex-col items-center justify-center text-gray-800 p-6">
-          <h1 className="text-6xl font-extrabold text-green-900 mb-8">
-            Salladsbaren
-          </h1>
+    const raw = window.localStorage.getItem("cart");
+    if (!raw) return [];
+    return Salad.parse(raw);
+  }
+
+  return (
+    <>
+      <div className="flex flex-col items-center justify-center text-gray-800 p-6">
+        <h1 className="text-6xl font-extrabold text-green-900 mb-8">
+          Salladsbaren
+        </h1>
 
         <NavigationMenu className="mb-10">
           <NavigationMenuList>
             <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Link 
-                    to='/' 
-                    className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
-                  >
-                    Hem
-                  </Link>
-                </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Link 
-                    to='/compose-salad'
-                    className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
-                  >
-                    Gör din sallad
-                  </Link>
-                </NavigationMenuLink>
+              <NavigationMenuLink asChild>
+                <Link
+                  to="/"
+                  className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
+                >
+                  Hem
+                </Link>
+              </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link
-                  to='view-cart' 
+                  to="/compose-salad"
+                  className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
+                >
+                  Gör din sallad
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link
+                  to="view-cart"
                   className="px-5 py-2 bg-green-600 text-white rounded-lg shadow transition hover:bg-green-700 hover:text-white focus:ring-2 focus:ring-green-400"
                 >
                   Varukorg
@@ -90,9 +106,9 @@ const initialCart = [
           </NavigationMenuList>
         </NavigationMenu>
 
-        <Outlet context= { { inventory, cart, addSalad }} />
-        </div>
-      </>
+        <Outlet context={{ inventory, cart, addSalad }} />
+      </div>
+    </>
   );
 }
 

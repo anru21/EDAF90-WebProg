@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "./components/ui/button";
 import {
   AlertDialog,
@@ -31,31 +32,30 @@ import type { Salad } from "./salad";
 import { CheckCircle2Icon, CircleCheckIcon } from "lucide-react";
 import { useOutletContext } from "react-router";
 import { useParams } from "react-router-dom";
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
-
-
-
+import { safeFetchJson } from "./use-state-inventory";
 
 type PropsType = { cart: Salad[] };
 function ViewCart() {
   const { cart } = useOutletContext<PropsType>();
-  const  { saladId }  = useParams();
+  const { saladId } = useParams();
   const newSalad = cart.find((salad) => salad.uuid === saladId);
 
   return (
     <>
       <Card className="w-full p-3">
-        {cardHead}
+        <CardHead cart={cart}></CardHead>
         <CardContent>
-          {(newSalad &&
-          <Alert>
-            <CheckCircle2Icon />
-            <AlertTitle>En ny sallad har lagts till i varukorgen.</AlertTitle>
-            <AlertDescription>
-              Den kostar {newSalad.price()} kr
-            </AlertDescription>
-          </Alert>)}
+          {newSalad && (
+            <Alert>
+              <CheckCircle2Icon />
+              <AlertTitle>En ny sallad har lagts till i varukorgen.</AlertTitle>
+              <AlertDescription>
+                Den kostar {newSalad.price()} kr
+              </AlertDescription>
+            </Alert>
+          )}
           <Table>
             {tableHead}
             <TableBody>
@@ -63,7 +63,14 @@ function ViewCart() {
                 <TableRow key={salad.uuid}>
                   <TableCell className="font-normal">
                     {Object.keys(salad.ingredients).join(",")}
-                    {salad.uuid === saladId && <Badge variant="outline" className="bg-green-500 text-white ml-2">Ny</Badge>}
+                    {salad.uuid === saladId && (
+                      <Badge
+                        variant="outline"
+                        className="bg-green-500 text-white ml-2"
+                      >
+                        Ny
+                      </Badge>
+                    )}
                   </TableCell>
 
                   <TableCell>
@@ -114,25 +121,46 @@ function ViewCart() {
 /*
  * static content, rendered when the file is loaded.
  */
-const orderButton = (
-  <AlertDialog>
-    <AlertDialogTrigger asChild>
-      <Button>Skicka beställningen</Button>
-    </AlertDialogTrigger>
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Under utveckling</AlertDialogTitle>
-        <AlertDialogDescription>
-          Denna funktion implementeras under labb 4.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction>Continue</AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
-);
+function OrderButton({ cart }: { cart: Salad[] }) {
+  const [confirmation, setConfirmation] = useState("");
+  const saladIngredients = cart.map((Salad) => Object.keys(Salad.ingredients));
+
+  async function order() {
+    fetch("http://localhost:8080/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(saladIngredients),
+    });
+
+    const conf = await safeFetchJson("http://localhost:8080");
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    console.log(conf);
+  }
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button onClick={order}>Skicka beställningen </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Beställning</AlertDialogTitle>
+          <AlertDialogDescription>
+            Beställningen består av {cart.length} sallader
+            <br></br>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction>Continue</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 const tableHead = (
   <TableHeader>
     <TableRow>
@@ -144,11 +172,15 @@ const tableHead = (
     </TableRow>
   </TableHeader>
 );
-const cardHead = (
-  <CardHeader>
-    <CardTitle>Varukorgen</CardTitle>
-    <CardDescription>Här listas alla sallader du skapat.</CardDescription>
-    <CardAction>{orderButton}</CardAction>
-  </CardHeader>
-);
+function CardHead({ cart }: { cart: Salad[] }) {
+  return (
+    <CardHeader>
+      <CardTitle>Varukorgen</CardTitle>
+      <CardDescription>Här listas alla sallader du skapat.</CardDescription>
+      <CardAction>
+        <OrderButton cart={cart}></OrderButton>
+      </CardAction>
+    </CardHeader>
+  );
+}
 export default ViewCart;
