@@ -1,6 +1,6 @@
 import "./App.css";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 
 import {
@@ -9,11 +9,12 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-
 import { inventory } from "./inventory";
 import { Salad } from "./salad";
 
-import { executionAsyncResource } from "async_hooks";
+import { useFetchInventory } from "./use-fetch-inventory";
+import { clear } from "console";
+import { WindArrowDown } from "lucide-react";
 
 const initialCart = [
   new Salad()
@@ -39,33 +40,28 @@ const initialCart = [
     .add("Örtvinägrett", inventory["Örtvinägrett"]),
 ];
 
-let didInit = false;
-
 function App() {
   const [cart, setCart] = useState<Salad[]>(loadLocalStorage);
+  const inventory = useFetchInventory("http://localhost:8080");
+
+  // window.localStorage.setItem("cart", JSON.stringify("a"));
+
+  useEffect(() => {
+    window.localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
 
   function addSalad(saladToAdd: Salad) {
     const updatedCart: Salad[] = [saladToAdd, ...cart];
     setCart(updatedCart);
-    setLocalStorage(updatedCart);
+    //window.localStorage.setItem("cart", JSON.stringify(updatedCart));
   }
 
-  function setLocalStorage(newCart: Salad[]) {
-    window.localStorage.setItem("cart", JSON.stringify(newCart));
+  function clearSalad() {
+    setCart([]);
   }
 
   function loadLocalStorage(): Salad[] {
-    let raw;
-    console.log(didInit);
-    if (!didInit) {
-      didInit = true;
-      raw = window.localStorage.getItem("cart");
-      if (!raw) {
-        window.localStorage.setItem("cart", JSON.stringify(initialCart));
-      }
-      raw = window.localStorage.getItem("cart");
-    }
-    console.log(raw);
+    const raw = window.localStorage.getItem("cart");
     if (!raw) return [];
     return Salad.parse(raw);
   }
@@ -112,7 +108,7 @@ function App() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <Outlet context={{ inventory, cart, addSalad }} />
+        <Outlet context={{ inventory, cart, addSalad, clearSalad }} />
       </div>
     </>
   );

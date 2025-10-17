@@ -18,6 +18,19 @@ type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 async function loadInventory(baseURL: string): Promise<PartialInventory> {
   const inventory: Writeable<PartialInventory> = {};
   // TODO, fetch ingredients and add them to inventory
+  const ingredientsTypes = ['foundations', 'proteins', 'extras', 'dressings'];
+  await Promise.all(
+    ingredientsTypes.map(async (type) => {
+      const ingredientList = await safeFetchJson<string[]>(`${baseURL}/${type}`);
+      const ingredientInfo = await Promise.all(
+        ingredientList.map(async (ingredient) => safeFetchJson<IngredientInfo>(`${baseURL}/${type}/${ingredient}`))
+      );
+
+      ingredientList.map((ingredient:string, i) => {
+        inventory[ingredient] = ingredientInfo[i];
+      })
+    })
+  )
   return inventory;
 }
 

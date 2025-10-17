@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "./components/ui/table";
+import { Spinner } from "@/components/ui/spinner";
 import type { Salad } from "./salad";
 import { CheckCircle2Icon, CircleCheckIcon } from "lucide-react";
 import { useOutletContext } from "react-router";
@@ -36,16 +37,19 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { safeFetchJson } from "./use-state-inventory";
 
-type PropsType = { cart: Salad[] };
+type PropsType = {
+  cart: Salad[];
+  clearSalad: () => void;
+};
 function ViewCart() {
-  const { cart } = useOutletContext<PropsType>();
+  const { cart, clearSalad } = useOutletContext<PropsType>();
   const { saladId } = useParams();
   const newSalad = cart.find((salad) => salad.uuid === saladId);
 
   return (
     <>
       <Card className="w-full p-3">
-        <CardHead cart={cart}></CardHead>
+        <CardHead cart={cart} clearSalad={clearSalad}></CardHead>
         <CardContent>
           {newSalad && (
             <Alert>
@@ -121,40 +125,86 @@ function ViewCart() {
 /*
  * static content, rendered when the file is loaded.
  */
-function OrderButton({ cart }: { cart: Salad[] }) {
-  const [confirmation, setConfirmation] = useState("");
+function OrderButton({
+  cart,
+  clearSalad,
+}: {
+  cart: Salad[];
+  clearSalad: () => void;
+}) {
+  const [confirmation, setConfirmation] = useState<
+    OrderResponseType | undefined
+  >(undefined); // Lägg till start state nej Undefine
   const saladIngredients = cart.map((Salad) => Object.keys(Salad.ingredients));
 
-  async function order() {
-    fetch("http://localhost:8080/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(saladIngredients),
-    });
+  type OrderType = string[][];
+  type OrderResponseType = {
+    status: "confirmed" | "canceled";
+    timestamp: string;
+    uuid: string;
+    price: number;
+    order: OrderType;
+  };
 
-    const conf = await safeFetchJson("http://localhost:8080");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log(conf);
+  async function order() {
+    if (Object.keys(cart).length === 0) {
+      console.log("hej");
+    } else {
+      const conf = await safeFetchJson<OrderResponseType>(
+        "http://localhost:8080/orders",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(saladIngredients),
+        }
+      );
+      //await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      setConfirmation(conf);
+
+      //await new Promise((resolve) => setTimeout(resolve, 3000));
+      // clearSalad();
+    }
   }
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button onClick={order}>Skicka beställningen </Button>
+        <Button
+          onClick={() => {
+            order();
+            //  clearSalad();
+          }}
+        >
+          Skicka beställningen{" "}
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Beställning</AlertDialogTitle>
           <AlertDialogDescription>
-            Beställningen består av {cart.length} sallader
-            <br></br>
+            {Object.keys(cart).length === 0 ? (
+              <>Inga sallader i beställning. Lägg till sallader</>
+            ) : !confirmation ? (
+              <Spinner />
+            ) : (
+              <>
+                Beställningen består av <strong>{cart.length}</strong> sallader.{" "}
+                <br />
+                <strong>status:</strong> {confirmation.status} <br />
+                <strong>pris:</strong> {confirmation.price} <br />
+                <strong>orderid:</strong> {confirmation.uuid} <br />
+              </>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction>Continue</AlertDialogAction>
+          <AlertDialogAction onClick={() => clearSalad()}>
+            Continue
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -172,13 +222,19 @@ const tableHead = (
     </TableRow>
   </TableHeader>
 );
-function CardHead({ cart }: { cart: Salad[] }) {
+function CardHead({
+  cart,
+  clearSalad,
+}: {
+  cart: Salad[];
+  clearSalad: () => void;
+}) {
   return (
     <CardHeader>
       <CardTitle>Varukorgen</CardTitle>
       <CardDescription>Här listas alla sallader du skapat.</CardDescription>
       <CardAction>
-        <OrderButton cart={cart}></OrderButton>
+        <OrderButton cart={cart} clearSalad={clearSalad}></OrderButton>
       </CardAction>
     </CardHeader>
   );

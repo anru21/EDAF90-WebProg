@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Salad } from "./salad";
 import { useNavigate, useOutletContext } from "react-router";
 import { Alert, AlertTitle } from "./components/ui/alert";
@@ -65,7 +66,6 @@ function ComposeSalad() {
 
   const navigate = useNavigate();
 
-
   function handleChangeExtra(name: string, checked: CheckedState) {
     if (checked) {
       setExtra({ ...extra, [name]: inventory[name] });
@@ -77,22 +77,37 @@ function ComposeSalad() {
 
   function handleSaladSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    
+
     const extraList: string[] = Object.keys(extra);
-    const newErroneousFields = validateSalad(foundation, protein, extraList, dressing);
+    const newErroneousFields = validateSalad(
+      foundation,
+      protein,
+      extraList,
+      dressing
+    );
 
     setErroneousFields(newErroneousFields);
-    if (newErroneousFields.length > 0) return;  // Form validation failed. Return and do not create a new salad
+    if (newErroneousFields.length > 0) return; // Form validation failed. Return and do not create a new salad
 
     // Build salad
-    const saladToAdd: Salad = buildSalad(foundation, protein, extraList, dressing);
+    const saladToAdd: Salad = buildSalad(
+      foundation,
+      protein,
+      extraList,
+      dressing
+    );
     addSalad(saladToAdd);
 
     resetForm();
     navigate(`/view-cart/salad/${saladToAdd.uuid}`);
   }
 
-  function validateSalad(foundation: string, protein: string, extras: string[], dressing: string): string[] {
+  function validateSalad(
+    foundation: string,
+    protein: string,
+    extras: string[],
+    dressing: string
+  ): string[] {
     return [
       !foundation && "foundation",
       !protein && "protein",
@@ -101,18 +116,23 @@ function ComposeSalad() {
     ].filter(Boolean) as string[];
   }
 
-  function buildSalad(foundation:string, protein: string, extras: string[], dressing: string): Salad {
+  function buildSalad(
+    foundation: string,
+    protein: string,
+    extras: string[],
+    dressing: string
+  ): Salad {
     let salad = new Salad()
-    .add(foundation, inventory[foundation])
-    .add(protein, inventory[protein]);
+      .add(foundation, inventory[foundation])
+      .add(protein, inventory[protein]);
 
-    extras.forEach(item => {
+    extras.forEach((item) => {
       salad = salad.add(item, inventory[item]);
     });
 
     return salad.add(dressing, inventory[dressing]);
   }
-  
+
   function resetForm() {
     setDressing("");
     setExtra({});
@@ -121,55 +141,61 @@ function ComposeSalad() {
   }
 
   return (
-    <Card className="w-full p-3">
-      {cardHead}
-      <CardContent>
-        <form onSubmit={handleSaladSubmit} className="">
-          <SelectIngredient
-            label="Välj bas"
-            value={foundation}
-            options={baseNames}
-            onValueChange={setFoundation}
-            errorFields={erroneousFields}
-            ingredientType="foundation"
-          ></SelectIngredient>
+    <>
+      {Object.keys(inventory).length === 0 ? (
+        <Spinner />
+      ) : (
+        <Card className="w-full p-3">
+          {cardHead}
+          <CardContent>
+            <form onSubmit={handleSaladSubmit} className="">
+              <SelectIngredient
+                label="Välj bas"
+                value={foundation}
+                options={baseNames}
+                onValueChange={setFoundation}
+                errorFields={erroneousFields}
+                ingredientType="foundation"
+              ></SelectIngredient>
 
-          <SelectIngredient
-            label="Välj protein"
-            value={protein}
-            options={proteinNames}
-            onValueChange={setProtein}
-            errorFields={erroneousFields}
-            ingredientType="protein"
-          ></SelectIngredient>
+              <SelectIngredient
+                label="Välj protein"
+                value={protein}
+                options={proteinNames}
+                onValueChange={setProtein}
+                errorFields={erroneousFields}
+                ingredientType="protein"
+              ></SelectIngredient>
 
-          <SelectExtras
-            label="Välj minst två ingredienser"
-            value={extra}
-            options={extraNames}
-            inventory={inventory}
-            changeExtra={handleChangeExtra}
-            errorFields={erroneousFields}
-            ingredientType="extra"
-          ></SelectExtras>
+              <SelectExtras
+                label="Välj minst två ingredienser"
+                value={extra}
+                options={extraNames}
+                inventory={inventory}
+                changeExtra={handleChangeExtra}
+                errorFields={erroneousFields}
+                ingredientType="extra"
+              ></SelectExtras>
 
-          <SelectIngredient
-            label="Välj dressing"
-            value={dressing}
-            options={dressingNames}
-            onValueChange={setDressing}
-            errorFields={erroneousFields}
-            ingredientType="dressing"
-          ></SelectIngredient>
+              <SelectIngredient
+                label="Välj dressing"
+                value={dressing}
+                options={dressingNames}
+                onValueChange={setDressing}
+                errorFields={erroneousFields}
+                ingredientType="dressing"
+              ></SelectIngredient>
 
-          <div className="flex items-center justify-end mr-">
-            <Button type="submit" className="mr-4 cursor-pointer">
-              Lägg till i varukorgen
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+              <div className="flex items-center justify-end mr-">
+                <Button type="submit" className="mr-4 cursor-pointer">
+                  Lägg till i varukorgen
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+    </>
   );
 }
 
@@ -187,18 +213,19 @@ function SelectIngredient({
   onValueChange,
   options,
   errorFields,
-  ingredientType
+  ingredientType,
 }: SelectIngredientType) {
   const [hasClosed, setHasClosed] = useState(false);
 
   return (
     <div className="gap-2 mb-4">
       <label className="text-base font-semibold -mb-1">
-        {label}<span aria-hidden="true">*</span>
+        {label}
+        <span aria-hidden="true">*</span>
       </label>
-      <Select 
-        name={label} 
-        value={value} 
+      <Select
+        name={label}
+        value={value}
         onValueChange={onValueChange}
         required
         onOpenChange={(isOpen) => {
@@ -207,8 +234,14 @@ function SelectIngredient({
           }
         }}
       >
-        <SelectTrigger aria-invalid={(errorFields.includes(ingredientType) && !value) || (hasClosed && !value)} className="w-sm cursor-pointer mb-1">
-          <SelectValue placeholder="gör ett val"/>
+        <SelectTrigger
+          aria-invalid={
+            (errorFields.includes(ingredientType) && !value) ||
+            (hasClosed && !value)
+          }
+          className="w-sm cursor-pointer mb-1"
+        >
+          <SelectValue placeholder="gör ett val" />
         </SelectTrigger>
         <SelectContent>
           {options.map((ingredient) => (
@@ -218,12 +251,13 @@ function SelectIngredient({
           ))}
         </SelectContent>
       </Select>
-      {((errorFields.includes(ingredientType) && !value) || (hasClosed && !value))   && 
+      {((errorFields.includes(ingredientType) && !value) ||
+        (hasClosed && !value)) && (
         <Alert variant="destructive">
-          <AlertCircleIcon/>
+          <AlertCircleIcon />
           <AlertTitle>Gör ett val.</AlertTitle>
         </Alert>
-      }
+      )}
     </div>
   );
 }
@@ -245,7 +279,7 @@ function SelectExtras({
   inventory,
   changeExtra,
   errorFields,
-  ingredientType
+  ingredientType,
 }: SelectExtrasProps) {
   return (
     <>
@@ -253,9 +287,9 @@ function SelectExtras({
         <label className="col-span-4 text-base font-semibold">{label}</label>
         {options.map((ingredient) => (
           <Label
-          key={ingredient}
-          htmlFor={ingredient}
-          className="col-span-1 flex items-center space-x-1 cursor-pointer"
+            key={ingredient}
+            htmlFor={ingredient}
+            className="col-span-1 flex items-center space-x-1 cursor-pointer"
           >
             <Checkbox
               id={ingredient}
@@ -264,18 +298,18 @@ function SelectExtras({
                 changeExtra(ingredient, newChecked);
               }}
               className="cursor-pointer"
-              ></Checkbox>
+            ></Checkbox>
             {ingredient + ", " + inventory[ingredient].price + " kr"}
           </Label>
         ))}
       </div>
-      {(errorFields.includes(ingredientType) && Object.keys(value).length < 2) && 
+      {errorFields.includes(ingredientType) &&
+        Object.keys(value).length < 2 && (
           <Alert variant="destructive">
-            <AlertCircleIcon/>
+            <AlertCircleIcon />
             <AlertTitle>För få ingredienser, välj minst två.</AlertTitle>
           </Alert>
-      }
-      
+        )}
     </>
   );
 }
